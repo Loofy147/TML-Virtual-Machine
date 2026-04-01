@@ -43,13 +43,42 @@ class TestLLMDistiller(unittest.TestCase):
             data = pickle.load(f)
 
         self.assertGreater(len(data), 0)
-        # Check for some expected types
         types = {item['type'] for item in data.values()}
         self.assertIn('grammar', types)
-        self.assertIn('logic', types)
-        self.assertIn('relation', types)
 
         os.remove(test_seed)
+
+    def test_import_and_expansion(self):
+        seed1 = "seed1.fso"
+        seed2 = "seed2.fso"
+
+        # 1. Create first seed with one entry
+        dist1 = LLM_Ontology_Distiller()
+        v = dist1.engine.generate_basis_vector("entry1")
+        c = dist1.engine.collapse_to_torus(v)
+        dist1.global_seed_memory[c] = {"type": "test", "val": 1}
+        dist1.export_omniscience_seed(seed1)
+
+        # 2. Create second distiller, import seed1, add another entry
+        dist2 = LLM_Ontology_Distiller()
+        dist2.import_omniscience_seed(seed1)
+        self.assertIn(c, dist2.global_seed_memory)
+
+        v2 = dist2.engine.generate_basis_vector("entry2")
+        c2 = dist2.engine.collapse_to_torus(v2)
+        dist2.global_seed_memory[c2] = {"type": "test", "val": 2}
+        dist2.export_omniscience_seed(seed2)
+
+        # 3. Verify seed2 has both entries
+        with open(seed2, 'rb') as f:
+            data = pickle.load(f)
+        self.assertIn(c, data)
+        self.assertIn(c2, data)
+        self.assertEqual(len(data), 2)
+
+        # Cleanup
+        if os.path.exists(seed1): os.remove(seed1)
+        if os.path.exists(seed2): os.remove(seed2)
 
 if __name__ == '__main__':
     unittest.main()

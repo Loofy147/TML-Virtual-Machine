@@ -2,6 +2,7 @@ import numpy as np
 import pickle
 import time
 import hashlib
+import os
 from math import gcd
 
 class HolographicFSO_Engine:
@@ -39,6 +40,20 @@ class LLM_Ontology_Distiller:
         self.engine = HolographicFSO_Engine()
         self.global_seed_memory = {}
         print(f"[{time.strftime('%H:%M:%S')}] Booting Universal Knowledge Distiller...")
+
+    def import_omniscience_seed(self, filename="omniscience_seed.fso"):
+        """Loads an existing manifold from a binary file."""
+        if not os.path.exists(filename):
+            print(f"[!] Warning: {filename} not found. Starting with empty manifold.")
+            return False
+
+        with open(filename, 'rb') as f:
+            loaded_memory = pickle.load(f)
+            # Merge loaded memory into current global seed memory
+            self.global_seed_memory.update(loaded_memory)
+
+        print(f"[*] Imported {len(loaded_memory)} nodes from {filename}. Total nodes: {len(self.global_seed_memory)}.")
+        return True
 
     def extract_llm_core_logic(self):
         """
@@ -116,8 +131,12 @@ class LLM_Ontology_Distiller:
         print(f"[>>>] Exported to: {filename}. Transfer this file to the Android Node.")
 
 if __name__ == "__main__":
-    # Execute the Distiller
+    # Execute the Distiller with optional expansion
     distiller = LLM_Ontology_Distiller()
+
+    # Try loading existing seed to expand it
+    distiller.import_omniscience_seed("omniscience_seed.fso")
+
     distiller.extract_llm_core_logic()
     distiller.generate_relational_bindings()
     distiller.export_omniscience_seed()
